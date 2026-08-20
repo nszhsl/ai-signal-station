@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Wrangler
+.wrangler/
+wrangler.toml
+
+# Local config (contains secrets)
+local/config.json
+local/data/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

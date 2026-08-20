@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 额度信号站</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <span class="logo-text">AI 额度信号站</span>
+      </div>
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-product="codex">
+          <span class="tab-status" id="status-codex"></span>
+          ChatGPT / Codex
+        </button>
+        <button class="tab disabled" data-product="claude" disabled>
+          <span class="tab-status"></span>
+          Claude Code
+          <span class="badge-soon">即将上线</span>
+        </button>
+        <button class="tab disabled" data-product="grok" disabled>
+          <span class="tab-status"></span>
+          Grok
+          <span class="badge-soon">即将上线</span>
+        </button>
+      </nav>
+      <div class="topbar-right">
+        <span class="last-check" id="lastCheck"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Codex 面板 -->
+    <section id="panel-codex" class="panel active">
+
+      <!-- Hero 概览 -->
+      <div class="hero">
+        <div class="hero-left">
+          <h1 class="hero-title">Codex 额度重置监控</h1>
+          <p class="hero-desc">实时追踪 ChatGPT / Codex 共享额度重置信号，检测到新重置立即推送飞书。</p>
+          <div class="hero-meta" id="heroMeta">
+            <span class="meta-item">
+              <span class="meta-label">距上次重置</span>
+              <span class="meta-value" id="timeSince">—</span>
+            </span>
+            <span class="meta-item">
+              <span class="meta-label">重置命中率</span>
+              <span class="meta-value" id="hitRate">—</span>
+            </span>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div class="prob-ring">
+            <svg viewBox="0 0 120 120" class="ring-svg">
+              <circle cx="60" cy="60" r="52" class="ring-bg"/>
+              <circle cx="60" cy="60" r="52" class="ring-fg" id="ring24h"/>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-pct" id="pct24h">—</span>
+              <span class="ring-label">24 小时</span>
+            </div>
+          </div>
+          <div class="prob-ring">
+            <svg viewBox="0 0 120 120" class="ring-svg">
+              <circle cx="60" cy="60" r="52" class="ring-bg"/>
+              <circle cx="60" cy="60" r="52" class="ring-fg ring-fg-48" id="ring48h"/>
+            </svg>
+            <div class="ring-center">
+              <span class="ring-pct" id="pct48h">—</span>
+              <span class="ring-label">48 小时</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 订阅设置 -->
+      <div class="card subscribe-card">
+        <div class="card-row">
+          <div class="subscribe-info">
+            <h3>飞书推送</h3>
+            <p>检测到新的额度重置时，自动发送飞书群机器人消息。</p>
+          </div>
+          <div class="subscribe-form">
+            <input type="text" id="webhookInput" placeholder="粘贴飞书自定义机器人 Webhook URL" class="webhook-input">
+            <button id="saveWebhook" class="btn-primary">保存</button>
+          </div>
+        </div>
+        <div class="webhook-status" id="webhookStatus"></div>
+      </div>
+
+      <!-- 时间线 -->
+      <div class="section-header">
+        <h2>重置时间线</h2>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot dot-confirmed"></span>已确认重置</span>
+          <span class="legend-item"><span class="legend-dot dot-signal"></span>信号/推文</span>
+        </div>
+      </div>
+
+      <div class="timeline-wrapper">
+        <button class="timeline-nav nav-left" id="scrollLeft" aria-label="向左滚动">‹</button>
+        <div class="timeline-scroll" id="timelineScroll">
+          <div class="timeline" id="timeline"></div>
+        </div>
+        <button class="timeline-nav nav-right" id="scrollRight" aria-label="向右滚动">›</button>
+      </div>
+
+      <!-- 事件列表 -->
+      <div class="section-header">
+        <h2>事件详情</h2>
+        <span class="event-count" id="eventCount"></span>
+      </div>
+      <div class="event-list" id="eventList"></div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>数据来源 <a href="https://codexreset.org/" target="_blank" rel="noopener">codexreset.org</a> · 仅供参考，不代表官方口径</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+name = "your-worker-name"
+main = "src/worker.js"
+compatibility_date = "2024-12-01"
+
+# 每30分钟执行一次
+[triggers]
+crons = ["*/30 * * * *"]
+
+# KV 存储 — 替换为你自己的 namespace ID
+# 创建命令: wrangler kv namespace create DATA
+[[kv_namespaces]]
+binding = "DATA"
+id = "YOUR_KV_NAMESPACE_ID"
+
+# 静态前端
+[assets]
+directory = "./public"
+binding = "ASSETS"
