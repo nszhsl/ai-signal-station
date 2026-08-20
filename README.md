@@ -36,7 +36,7 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/你的用户名/ai-signal-station.git
+git clone https://github.com/aiolosking/ai-signal-station.git
 cd ai-signal-station
 
 # 2. 安装 Wrangler
@@ -94,7 +94,7 @@ crons = ["*/30 * * * *"]  # 每30分钟
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/你的用户名/ai-signal-station.git
+git clone https://github.com/aiolosking/ai-signal-station.git
 cd ai-signal-station
 
 # 2. 配置飞书 Webhook
