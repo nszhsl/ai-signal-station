@@ -6,7 +6,7 @@
 - Claude 数据来源 [claude-resets.com](https://claude-resets.com/)，读取公开 JSON（不登录、不抓个人用量）：
   - [data/summary.json](https://claude-resets.com/data/summary.json)（快路径：lastResetAt / resetCount / scope）
   - [api/resets](https://claude-resets.com/api/resets) 或 [data/resets.json](https://claude-resets.com/data/resets.json)（完整事件，含 `reset` / `policy` 与 scope）
-  - 可选 RSS：[rss/resets.xml](https://claude-resets.com/rss/resets.xml)
+  - 可选 RSS：[rss/resets.xml](https://claude-resets.com/rss/resets.xml)（曾返回 500，不稳定；主路径仍是上面的 JSON）
 
 本仓库**不做**个人 `/usage`、SessionWatcher 或账号登录监控。
 
@@ -127,6 +127,28 @@ npm start
 ```bash
 npm test
 ```
+
+## 现网与运维
+
+当前线上 Worker：
+
+```
+https://ai-signal-station.cf-d.workers.dev
+```
+
+### 更新已有 Worker（不是从零部署）
+
+现有 `wrangler.toml` 已经绑定了 KV 的 `id` / `name`，**不要**再执行 `wrangler kv namespace create DATA`，也**不要**随手覆盖 Secret。
+
+在同一 Worker 名 `ai-signal-station` 上覆盖部署：
+
+```bash
+wrangler deploy
+```
+
+部署后优先等下一次 Cron 自动跑，或审慎地做一次 Claude 首次回填。**不要**在 Claude 第一次回填时随便打 `/api/trigger`，以免把历史确认重置回放到飞书。采集器对 Claude 设了 `notifyOnEmpty=false`，空库首次填充本身不应刷屏。
+
+Claude 的 RSS（`rss/resets.xml`）可能不稳定（曾返回 500），公开 JSON 才是主路径。
 
 ## 飞书机器人配置
 
