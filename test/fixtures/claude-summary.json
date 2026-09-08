@@ -1,0 +1,23 @@
+{
+  "site": "https://claude-resets.com/",
+  "name": "claude-resets.com",
+  "product": "Claude Code",
+  "account": "ClaudeDevs",
+  "accountUrl": "https://x.com/ClaudeDevs",
+  "lastResetAt": "2026-09-04T20:08:45Z",
+  "lastResetUrl": "https://x.com/lydiahallie/status/2095967323412930677",
+  "lastResetAccount": "lydiahallie",
+  "lastResetScope": "Max",
+  "resetCount": 3,
+  "policyChangeCount": 1,
+  "meanGapDays": 14.1,
+  "longestGapDays": 50.7,
+  "firstResetAt": "2026-04-16T20:02:04Z",
+  "datasetUrl": "https://claude-resets.com/data/resets.json",
+  "liveDatasetUrl": "https://claude-resets.com/api/resets",
+  "resetRssUrl": "https://claude-resets.com/rss/resets.xml",
+  "definitions": {
+    "reset": "Announcement that flushed Claude Code 5-hour and/or weekly usage counters.",
+    "policy": "Announcement that changed limits without flushing counters; listed but not counted as a reset."
+  }
+}

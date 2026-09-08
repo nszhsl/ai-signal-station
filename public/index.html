@@ -15,16 +15,15 @@
         <span class="logo-text">AI 额度信号站</span>
       </div>
       <nav class="tabs" id="tabs">
-        <button class="tab active" data-product="codex">
+        <button class="tab active" type="button" data-product="codex">
           <span class="tab-status" id="status-codex"></span>
           ChatGPT / Codex
         </button>
-        <button class="tab disabled" data-product="claude" disabled>
-          <span class="tab-status"></span>
+        <button class="tab" type="button" data-product="claude">
+          <span class="tab-status" id="status-claude"></span>
           Claude Code
-          <span class="badge-soon">即将上线</span>
         </button>
-        <button class="tab disabled" data-product="grok" disabled>
+        <button class="tab disabled" type="button" data-product="grok" disabled>
           <span class="tab-status"></span>
           Grok
           <span class="badge-soon">即将上线</span>
@@ -37,65 +36,62 @@
   </header>
 
   <main class="container">
-    <!-- Codex 面板 -->
-    <section id="panel-codex" class="panel active">
+    <!-- 订阅设置（各产品共用） -->
+    <div class="card subscribe-card">
+      <div class="card-row">
+        <div class="subscribe-info">
+          <h3>飞书推送</h3>
+          <p>检测到新的额度重置时，自动发送飞书群机器人消息。</p>
+        </div>
+        <div class="subscribe-form">
+          <input type="text" id="webhookInput" placeholder="粘贴飞书自定义机器人 Webhook URL" class="webhook-input">
+          <button id="saveWebhook" class="btn-primary">保存</button>
+        </div>
+      </div>
+      <div class="webhook-status" id="webhookStatus"></div>
+    </div>
 
-      <!-- Hero 概览 -->
+    <!-- Codex 面板 -->
+    <section id="panel-codex" class="panel active" data-product="codex">
       <div class="hero">
         <div class="hero-left">
           <h1 class="hero-title">Codex 额度重置监控</h1>
           <p class="hero-desc">实时追踪 ChatGPT / Codex 共享额度重置信号，检测到新重置立即推送飞书。</p>
-          <div class="hero-meta" id="heroMeta">
+          <div class="hero-meta">
             <span class="meta-item">
               <span class="meta-label">距上次重置</span>
-              <span class="meta-value" id="timeSince">—</span>
+              <span class="meta-value" data-role="time-since">—</span>
             </span>
             <span class="meta-item">
-              <span class="meta-label">重置命中率</span>
-              <span class="meta-value" id="hitRate">—</span>
+              <span class="meta-label" data-role="secondary-label">重置命中率</span>
+              <span class="meta-value" data-role="secondary-value">—</span>
             </span>
           </div>
         </div>
-        <div class="hero-right">
+        <div class="hero-right" data-role="forecast-rings">
           <div class="prob-ring">
             <svg viewBox="0 0 120 120" class="ring-svg">
               <circle cx="60" cy="60" r="52" class="ring-bg"/>
-              <circle cx="60" cy="60" r="52" class="ring-fg" id="ring24h"/>
+              <circle cx="60" cy="60" r="52" class="ring-fg" data-role="ring-24h"/>
             </svg>
             <div class="ring-center">
-              <span class="ring-pct" id="pct24h">—</span>
+              <span class="ring-pct" data-role="pct-24h">—</span>
               <span class="ring-label">24 小时</span>
             </div>
           </div>
           <div class="prob-ring">
             <svg viewBox="0 0 120 120" class="ring-svg">
               <circle cx="60" cy="60" r="52" class="ring-bg"/>
-              <circle cx="60" cy="60" r="52" class="ring-fg ring-fg-48" id="ring48h"/>
+              <circle cx="60" cy="60" r="52" class="ring-fg ring-fg-48" data-role="ring-48h"/>
             </svg>
             <div class="ring-center">
-              <span class="ring-pct" id="pct48h">—</span>
+              <span class="ring-pct" data-role="pct-48h">—</span>
               <span class="ring-label">48 小时</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 订阅设置 -->
-      <div class="card subscribe-card">
-        <div class="card-row">
-          <div class="subscribe-info">
-            <h3>飞书推送</h3>
-            <p>检测到新的额度重置时，自动发送飞书群机器人消息。</p>
-          </div>
-          <div class="subscribe-form">
-            <input type="text" id="webhookInput" placeholder="粘贴飞书自定义机器人 Webhook URL" class="webhook-input">
-            <button id="saveWebhook" class="btn-primary">保存</button>
-          </div>
-        </div>
-        <div class="webhook-status" id="webhookStatus"></div>
-      </div>
-
-      <!-- 时间线 -->
       <div class="section-header">
         <h2>重置时间线</h2>
         <div class="legend">
@@ -105,25 +101,65 @@
       </div>
 
       <div class="timeline-wrapper">
-        <button class="timeline-nav nav-left" id="scrollLeft" aria-label="向左滚动">‹</button>
-        <div class="timeline-scroll" id="timelineScroll">
-          <div class="timeline" id="timeline"></div>
+        <button class="timeline-nav nav-left" type="button" data-role="scroll-left" aria-label="向左滚动">‹</button>
+        <div class="timeline-scroll" data-role="timeline-scroll">
+          <div class="timeline" data-role="timeline"></div>
         </div>
-        <button class="timeline-nav nav-right" id="scrollRight" aria-label="向右滚动">›</button>
+        <button class="timeline-nav nav-right" type="button" data-role="scroll-right" aria-label="向右滚动">›</button>
       </div>
 
-      <!-- 事件列表 -->
       <div class="section-header">
         <h2>事件详情</h2>
-        <span class="event-count" id="eventCount"></span>
+        <span class="event-count" data-role="event-count"></span>
       </div>
-      <div class="event-list" id="eventList"></div>
+      <div class="event-list" data-role="event-list"></div>
+    </section>
 
+    <!-- Claude 面板：复用同一套时间线 / 事件列表，无 24h/48h 预测环 -->
+    <section id="panel-claude" class="panel no-forecast" data-product="claude">
+      <div class="hero">
+        <div class="hero-left">
+          <h1 class="hero-title">Claude Code 额度重置监控</h1>
+          <p class="hero-desc">追踪公开的全球 Claude Code 重置与策略公告，检测到新的确认重置立即推送飞书。</p>
+          <div class="hero-meta">
+            <span class="meta-item">
+              <span class="meta-label">距上次重置</span>
+              <span class="meta-value" data-role="time-since">—</span>
+            </span>
+            <span class="meta-item">
+              <span class="meta-label" data-role="secondary-label">公开重置次数</span>
+              <span class="meta-value" data-role="secondary-value">—</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>重置时间线</h2>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot dot-confirmed"></span>已确认重置</span>
+          <span class="legend-item"><span class="legend-dot dot-policy"></span>策略变更</span>
+        </div>
+      </div>
+
+      <div class="timeline-wrapper">
+        <button class="timeline-nav nav-left" type="button" data-role="scroll-left" aria-label="向左滚动">‹</button>
+        <div class="timeline-scroll" data-role="timeline-scroll">
+          <div class="timeline" data-role="timeline"></div>
+        </div>
+        <button class="timeline-nav nav-right" type="button" data-role="scroll-right" aria-label="向右滚动">›</button>
+      </div>
+
+      <div class="section-header">
+        <h2>事件详情</h2>
+        <span class="event-count" data-role="event-count"></span>
+      </div>
+      <div class="event-list" data-role="event-list"></div>
     </section>
   </main>
 
   <footer class="footer">
-    <p>数据来源 <a href="https://codexreset.org/" target="_blank" rel="noopener">codexreset.org</a> · 仅供参考，不代表官方口径</p>
+    <p id="footerSource">数据来源 <a href="https://codexreset.org/" target="_blank" rel="noopener">codexreset.org</a> · 仅供参考，不代表官方口径</p>
   </footer>
 
   <script src="app.js"></script>
