@@ -168,6 +168,8 @@ body {
 
 .panel { display: none; }
 .panel.active { display: block; }
+.panel.no-forecast .hero-right,
+.panel .hero-right[hidden] { display: none; }
 
 /* ─── Hero ─── */
 
@@ -418,6 +420,7 @@ body {
 
 .dot-confirmed { background: var(--c-blue); }
 .dot-signal { background: transparent; border: 2px solid var(--text-muted); }
+.dot-policy { background: var(--c-orange); }
 
 .event-count {
   font-size: 12px;
@@ -501,6 +504,11 @@ body {
   border: 2.5px solid var(--text-muted);
 }
 
+.tl-dot.policy {
+  background: var(--c-orange);
+  box-shadow: 0 0 0 4px rgba(244, 82, 13, 0.15);
+}
+
 .tl-date {
   position: absolute;
   left: 50%;
@@ -536,6 +544,11 @@ body {
 .tl-label.signal {
   background: var(--c-cream);
   color: var(--text-secondary);
+}
+
+.tl-label.policy {
+  background: var(--c-orange-light);
+  color: var(--c-orange);
 }
 
 .timeline-nav {
@@ -596,6 +609,10 @@ body {
   border-left: 3px solid var(--c-cream-dark);
 }
 
+.event-card.policy {
+  border-left: 3px solid var(--c-orange);
+}
+
 .event-top {
   display: flex;
   justify-content: space-between;
@@ -628,6 +645,11 @@ body {
 .event-tag.post {
   background: var(--c-cream);
   color: var(--text-secondary);
+}
+
+.event-tag.policy {
+  background: var(--c-orange-light);
+  color: var(--c-orange);
 }
 
 .event-summary {

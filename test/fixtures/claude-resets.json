@@ -1,0 +1,49 @@
+{
+  "providers": {
+    "claude": {
+      "name": "Claude",
+      "product": "Claude Code",
+      "account": "ClaudeDevs",
+      "accountUrl": "https://x.com/ClaudeDevs",
+      "events": [
+        {
+          "id": "2044868953206612154",
+          "date": "2026-04-16T20:02:04Z",
+          "kind": "reset",
+          "scope": "all",
+          "note": "Fixed a bug where subscription rate limits weren't adjusted for long-context requests on Opus 4.7, then reset 5-hour and weekly limits.",
+          "url": "https://x.com/ClaudeDevs/status/2044868953206612154",
+          "verification": "curated"
+        },
+        {
+          "id": "2052064938840228237",
+          "date": "2026-05-06T16:36:21Z",
+          "kind": "policy",
+          "scope": "paid plans",
+          "note": "Doubled Claude Code's 5-hour limits on Pro, Max, Team and seat-based Enterprise, removed the peak-hours reduction, and raised Opus API limits.",
+          "url": "https://x.com/ClaudeDevs/status/2052064938840228237",
+          "verification": "curated"
+        },
+        {
+          "id": "2061501787769893055",
+          "date": "2026-06-01T17:35:01Z",
+          "kind": "reset",
+          "scope": "Pro + Max",
+          "note": "Fixed an issue where some Claude Code sessions spawned excessive parallel subagents and burned usage faster than expected, then reset limits.",
+          "url": "https://x.com/ClaudeDevs/status/2061501787769893055",
+          "verification": "curated"
+        },
+        {
+          "id": "2095967323412930677",
+          "date": "2026-09-04T20:08:45Z",
+          "kind": "reset",
+          "account": "lydiahallie",
+          "scope": "Max",
+          "note": "Reset weekly limits for everyone on a Claude Max plan after Fable 5.1 launched, so people could keep building over the long weekend.",
+          "url": "https://x.com/lydiahallie/status/2095967323412930677",
+          "verification": "curated"
+        }
+      ]
+    }
+  }
+}
