@@ -1,7 +1,21 @@
-import { claudeProvider } from './claude.js';
-import { codexProvider } from './codex.js';
+import { PRODUCT_IDS, parseProductSnapshot } from '../whenreset.js';
 
-const PROVIDERS = [codexProvider, claudeProvider];
+function providerFor(id) {
+  return {
+    id,
+    enabled: true,
+    kvKey: `${id}:data`,
+    eventsKey: `${id}:events`,
+    apiPath: `/api/${id}`,
+    notifyKinds: ['confirmed', 'card'],
+    notifyOnEmpty: false,
+    parse(payload, opts) {
+      return parseProductSnapshot(id, payload, opts);
+    },
+  };
+}
+
+const PROVIDERS = PRODUCT_IDS.map(providerFor);
 
 export function getProviders() {
   return PROVIDERS;

@@ -2,7 +2,7 @@
  * AI 额度信号站 — Cloudflare Worker
  *
  * 职责：
- * 1. Cron（每30分钟）：对每个 enabled provider 抓取 → 解析 → 存 KV → 新确认重置推飞书
+ * 1. Cron（每30分钟）：一次拉取 whenreset /api/resets，分发 Codex / Claude / Grok，存 KV，新重置/额度卡与 watch 变更推飞书
  * 2. GET /api/{product}：返回该产品 KV 快照（供前端读取）
  * 3. 其他请求：提供静态前端（public/ 目录）
  */
@@ -25,6 +25,7 @@ function runMonitor(env) {
     fetchText,
     webhook: env.FEISHU_WEBHOOK,
     sendCard: sendFeishu,
+    watchNotify: env.WATCH_NOTIFY,
   });
 }
 

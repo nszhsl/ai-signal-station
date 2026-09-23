@@ -1,3 +1,4 @@
 {
-  "feishu_webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_TOKEN"
+  "feishu_webhook": "https://open.feishu.cn/open-apis/bot/v2/hook/YOUR_WEBHOOK_TOKEN",
+  "watch_notify": "open-or-change"
 }
