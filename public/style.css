@@ -138,16 +138,6 @@ body {
   display: block;
 }
 
-.badge-soon {
-  font-size: 10px;
-  font-weight: 600;
-  background: var(--c-cream-dark);
-  color: var(--text-muted);
-  padding: 1px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.02em;
-}
-
 .topbar-right {
   flex-shrink: 0;
 }
@@ -168,8 +158,6 @@ body {
 
 .panel { display: none; }
 .panel.active { display: block; }
-.panel.no-forecast .hero-right,
-.panel .hero-right[hidden] { display: none; }
 
 /* ─── Hero ─── */
 
@@ -211,7 +199,7 @@ body {
   font-size: 14px;
   opacity: 0.8;
   line-height: 1.7;
-  max-width: 420px;
+  max-width: 640px;
   margin-bottom: 24px;
 }
 
@@ -241,66 +229,18 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.hero-right {
-  display: flex;
-  gap: 20px;
-  align-items: center;
+.meta-sub {
+  font-size: 12px;
+  opacity: 0.8;
+  max-width: 240px;
 }
 
-.prob-ring {
-  position: relative;
-  width: 110px;
-  height: 110px;
-}
-
-.ring-svg {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.ring-bg {
-  fill: none;
-  stroke: rgba(255,255,255,0.15);
-  stroke-width: 8;
-}
-
-.ring-fg {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 326.7;
-  stroke-dashoffset: 326.7;
-  transition: stroke-dashoffset 1s ease;
-}
-
-.ring-fg-48 {
-  stroke: var(--c-orange);
-  stroke: #F4520D;
-}
-
-.ring-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.ring-pct {
-  font-size: 24px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.ring-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.6;
-  margin-top: 4px;
+.hero-disclaimer {
+  margin-top: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.78;
+  max-width: 640px;
 }
 
 /* ─── 卡片 ─── */
@@ -431,6 +371,80 @@ body {
   padding: 3px 10px;
   border-radius: 99px;
   font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.stat-value {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-note {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.watch-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 16px 0 8px;
+  box-shadow: var(--shadow);
+}
+
+.watch-card.is-open {
+  background: var(--c-orange-light);
+  border-color: #f3c2ae;
+}
+
+.watch-card.is-empty {
+  color: var(--text-muted);
+}
+
+.watch-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-orange);
+}
+
+.watch-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.watch-text,
+.watch-meta {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 /* ─── 时间线 ─── */
@@ -718,7 +732,15 @@ body {
 .event-bottom {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.event-sources {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .event-time {
@@ -762,10 +784,10 @@ body {
   .logo-text { display: none; }
   .container { padding: 20px 16px 60px; }
   .hero { flex-direction: column; padding: 28px 24px; gap: 24px; }
-  .hero-right { justify-content: center; }
+  .event-bottom { flex-direction: column; }
+  .event-sources { justify-content: flex-start; }
   .subscribe-card .card-row { flex-direction: column; align-items: stretch; }
   .subscribe-form { flex-direction: column; }
   .webhook-input { width: 100%; }
   .tab { padding: 6px 12px; font-size: 13px; }
-  .badge-soon { display: none; }
 }

@@ -2,9 +2,14 @@ name = "your-worker-name"
 main = "src/worker.js"
 compatibility_date = "2024-12-01"
 
-# 每30分钟执行一次
+# 每30分钟执行一次。一次 Cron 只拉 whenreset /api/resets，再分发三厂。
 [triggers]
 crons = ["*/30 * * * *"]
+
+# 可选：watch 飞书策略，普通变量，不是 Secret。
+# open-or-change（默认）| open-change-and-complete | off
+# [vars]
+# WATCH_NOTIFY = "open-or-change"
 
 # KV 存储 — 替换为你自己的 namespace ID
 # 创建命令: wrangler kv namespace create DATA

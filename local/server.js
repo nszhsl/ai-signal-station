@@ -2,9 +2,9 @@
  * AI 额度信号站 — 本地运行版（无需 Cloudflare）
  *
  * 功能：
- *   1. 启动后每 30 分钟抓取 enabled providers，写入 local/data/
+ *   1. 启动后每 30 分钟拉取一次 whenreset /api/resets，写入 local/data/
  *   2. 同时提供 HTTP 服务，托管 public/ 下的前端和 /api/{product} 接口
- *   3. 检测到新的确认重置时推送到飞书
+ *   3. 检测到新的重置、额度卡或 watch 变更时推送到飞书
  *
  * 用法：
  *   node local/server.js
@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { fetchText } from '../src/lib/http.js';
 import { sendFeishu } from '../src/lib/feishu.js';
 import { runEnabledProviders } from '../src/lib/monitor.js';
-import { getEnabledProviders, getProviderByApiPath } from '../src/lib/providers/index.js';
+import { getEnabledProviders, getProviderByApiPath, getProviders } from '../src/lib/providers/index.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -30,12 +30,14 @@ const CONFIG_PATH = path.join(ROOT, 'local', 'config.json');
 const PORT = process.env.PORT || 8860;
 const POLL_INTERVAL = 30 * 60 * 1000;
 
-const KEY_FILES = {
-  'codex:data': 'codex.json',
-  'codex:events': 'codex-events.json',
-  'claude:data': 'claude.json',
-  'claude:events': 'claude-events.json',
-};
+function fileForKey(key) {
+  const ids = new Set(getProviders().map((provider) => provider.id));
+  const [id, kind] = String(key).split(':');
+  if (!ids.has(id)) return null;
+  if (kind === 'data') return `${id}.json`;
+  if (kind === 'events') return `${id}-events.json`;
+  return null;
+}
 
 function readJSON(file, fallback) {
   try { return JSON.parse(fs.readFileSync(file, 'utf-8')); }
@@ -45,13 +47,13 @@ function readJSON(file, fallback) {
 function fileStore(dataDir) {
   return {
     async get(key) {
-      const file = KEY_FILES[key];
+      const file = fileForKey(key);
       if (!file) return null;
       try { return fs.readFileSync(path.join(dataDir, file), 'utf-8'); }
       catch { return null; }
     },
     async put(key, value) {
-      const file = KEY_FILES[key];
+      const file = fileForKey(key);
       if (!file) return;
       fs.mkdirSync(dataDir, { recursive: true });
       let pretty = value;
@@ -63,7 +65,7 @@ function fileStore(dataDir) {
 }
 
 async function runMonitor() {
-  const config = readJSON(CONFIG_PATH, { feishu_webhook: '' });
+  const config = readJSON(CONFIG_PATH, { feishu_webhook: '', watch_notify: 'open-or-change' });
   const now = new Date().toISOString();
   console.log(`[${now}] 开始检查...`);
   const results = await runEnabledProviders(getEnabledProviders(), {
@@ -71,6 +73,7 @@ async function runMonitor() {
     fetchText,
     webhook: config.feishu_webhook,
     sendCard: sendFeishu,
+    watchNotify: config.watch_notify,
     now,
   });
   for (const result of results) {
