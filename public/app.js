@@ -8,7 +8,7 @@
   const EMPTY_COPY = '暂无公开全球重置信号';
   const FOOTER = {
     codex: '数据来源 <a href="https://codexreset.org/" target="_blank" rel="noopener">codexreset.org</a> · 仅供参考，不代表官方口径',
-    claude: '数据来源 <a href="https://claude-resets.com/" target="_blank" rel="noopener">claude-resets.com</a> · 仅供参考，不代表官方口径',
+    claude: '数据来源 <a href="https://whenreset.dev/claude" target="_blank" rel="noopener">whenreset.dev</a> · 公开重置与额度卡，不含策略变更 · 仅供参考，不代表官方口径',
   };
 
   function formatDate(iso) {
@@ -114,6 +114,11 @@
       }
     }
 
+    const gapEl = role(panel, 'gap-value');
+    if (gapEl) {
+      gapEl.textContent = data.medianGapDays != null ? `${data.medianGapDays} 天` : '—';
+    }
+
     const rings = role(panel, 'forecast-rings');
     if (rings) rings.hidden = !hasForecast(data);
     if (hasForecast(data)) {
@@ -148,21 +153,16 @@
     let useTop = true;
 
     ordered.forEach((evt, i) => {
-      const isConfirmed = evt.kind === 'confirmed';
-      const isPolicy = evt.kind === 'policy';
+      const view = kindView(evt.kind);
       const side = useTop ? 'top' : 'bottom';
       const dateLabel = formatDateShort(evt.datetime);
-      const dotClass = isConfirmed ? 'confirmed' : (isPolicy ? 'policy' : 'signal');
-      let label = '';
-      if (isConfirmed && evt.label) {
-        label = `<span class="tl-label ${side} confirmed">重置</span>`;
-      } else if (isPolicy) {
-        label = `<span class="tl-label ${side} policy">策略</span>`;
-      }
+      const label = view.timeline
+        ? `<span class="tl-label ${side} ${view.dot}">${view.timeline}</span>`
+        : '';
 
       html += `
         <div class="tl-node" data-index="${i}">
-          <div class="tl-dot ${dotClass}" title="${formatDate(evt.datetime)}"></div>
+          <div class="tl-dot ${view.dot}" title="${formatDate(evt.datetime)}"></div>
           <span class="tl-date ${side}">${dateLabel}</span>
           ${label}
         </div>`;
@@ -180,12 +180,11 @@
     }
 
     list.innerHTML = events.map((evt) => {
-      const isConfirmed = evt.kind === 'confirmed';
-      const isPolicy = evt.kind === 'policy';
-      const tagText = isConfirmed ? '已确认重置' : (isPolicy ? '策略变更' : '信号 / 推文');
+      const view = kindView(evt.kind);
+      const tagText = view.tag;
       const fallbackTitle = product === 'claude'
-        ? (isConfirmed ? 'Claude 额度重置' : (isPolicy ? 'Claude 策略变更' : 'Claude 信号'))
-        : (isConfirmed ? 'Codex 额度重置' : '重置相关信号');
+        ? claudeFallbackTitle(evt.kind)
+        : (evt.kind === 'confirmed' ? 'Codex 额度重置' : '重置相关信号');
       const title = evt.title || fallbackTitle;
       const desc = evt.description || '';
       const source = evt.sourceUrl
@@ -211,6 +210,32 @@
           </div>
         </div>`;
     }).join('');
+  }
+
+  function kindView(kind) {
+    switch (kind) {
+      case 'confirmed':
+        return { dot: 'confirmed', tag: '已确认重置', timeline: '重置' };
+      case 'card':
+        return { dot: 'card', tag: '额度卡', timeline: '额度卡' };
+      case 'policy':
+        return { dot: 'policy', tag: '策略变更', timeline: '策略' };
+      default:
+        return { dot: 'signal', tag: '信号 / 推文', timeline: '' };
+    }
+  }
+
+  function claudeFallbackTitle(kind) {
+    switch (kind) {
+      case 'confirmed':
+        return 'Claude 额度重置';
+      case 'card':
+        return 'Claude 额度卡';
+      case 'policy':
+        return 'Claude 策略变更';
+      default:
+        return 'Claude 信号';
+    }
   }
 
   function escapeHtml(s) {

@@ -217,6 +217,7 @@ body {
 
 .hero-meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 32px;
 }
 
@@ -421,6 +422,7 @@ body {
 .dot-confirmed { background: var(--c-blue); }
 .dot-signal { background: transparent; border: 2px solid var(--text-muted); }
 .dot-policy { background: var(--c-orange); }
+.dot-card { background: var(--c-cream-dark); border: 2px solid var(--c-blue); }
 
 .event-count {
   font-size: 12px;
@@ -509,6 +511,12 @@ body {
   box-shadow: 0 0 0 4px rgba(244, 82, 13, 0.15);
 }
 
+.tl-dot.card {
+  background: var(--c-cream);
+  border: 2.5px solid var(--c-blue);
+  box-shadow: 0 0 0 4px rgba(19, 135, 192, 0.12);
+}
+
 .tl-date {
   position: absolute;
   left: 50%;
@@ -549,6 +557,11 @@ body {
 .tl-label.policy {
   background: var(--c-orange-light);
   color: var(--c-orange);
+}
+
+.tl-label.card {
+  background: var(--c-cream);
+  color: var(--c-blue-dark);
 }
 
 .timeline-nav {
@@ -613,6 +626,10 @@ body {
   border-left: 3px solid var(--c-orange);
 }
 
+.event-card.card {
+  border-left: 3px solid var(--c-blue-dark);
+}
+
 .event-top {
   display: flex;
   justify-content: space-between;
@@ -650,6 +667,11 @@ body {
 .event-tag.policy {
   background: var(--c-orange-light);
   color: var(--c-orange);
+}
+
+.event-tag.card {
+  background: var(--c-cream);
+  color: var(--c-blue-dark);
 }
 
 .event-summary {
