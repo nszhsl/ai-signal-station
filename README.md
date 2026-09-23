@@ -3,27 +3,28 @@
 实时监控 ChatGPT / Codex 与 Claude Code 的**公开全球额度重置**动态，检测到确认重置时自动推送飞书通知。
 
 - Codex 数据来源 [codexreset.org](https://codexreset.org/)，解析其公开页面时间线。
-- Claude 数据来源 [claude-resets.com](https://claude-resets.com/)，读取公开 JSON（不登录、不抓个人用量）：
-  - [data/summary.json](https://claude-resets.com/data/summary.json)（快路径：lastResetAt / resetCount / scope）
-  - [api/resets](https://claude-resets.com/api/resets) 或 [data/resets.json](https://claude-resets.com/data/resets.json)（完整事件，含 `reset` / `policy` 与 scope）
-  - 可选 RSS：[rss/resets.xml](https://claude-resets.com/rss/resets.xml)（曾返回 500，不稳定；主路径仍是上面的 JSON）
+- Claude 数据来源 [whenreset.dev](https://whenreset.dev/claude) 的公开 JSON（不登录、不抓个人用量）：
+  - 主路径：[api/resets](https://whenreset.dev/api/resets)。响应混合了 Codex / Claude / Grok，采集器只保留 `provider === "claude"`。
+  - `type: reset` 归一为已确认重置；`type: card` 归一为可稍后兑换的额度卡。**没有**旧源里的 `policy`（只改限额、不刷新计数）事件，这部分记录会缺。
+  - 摘要来自 `stats.claude`。间隔用 `medianGapHours`，换算成 `medianGapDays = medianGapHours / 24` 再展示为「间隔中位数」，不要把它当成平均间隔天数。
+  - JSON 失败时才回退可选 RSS：[reset-feed?provider=claude](https://whenreset.dev/api/reset-feed?provider=claude)。RSS 没有 summary，时间用帖子 `pubDate`，可能比 JSON 的 `landedAt` 晚。
 
 本仓库**不做**个人 `/usage`、SessionWatcher 或账号登录监控。
 
 ## 功能
 
-- 📊 **实时面板** — Codex：24h/48h 重置概率、命中率、距上次重置；Claude：距上次重置、公开重置次数（无预测环）
-- 📅 **重置时间线** — 横向滚动时间轴，展示历史重置 / 策略事件
+- 📊 **实时面板** — Codex：24h/48h 重置概率、命中率、距上次重置；Claude：距上次重置、额度重置次数、间隔中位数（无预测环）
+- 📅 **重置时间线** — 横向滚动时间轴，展示历史重置；Claude 另外标出额度卡
 - 📝 **中文事件详情** — 自动翻译标题、范围、来源，生成中文描述
 - 🔔 **飞书推送** — 检测到新的确认重置时，自动发送飞书群机器人卡片（`[Codex]` / `[Claude]`）
-- 🌙 **静默运行** — 无新事件时不发送任何通知；策略变更只记录不推送
+- 🌙 **静默运行** — 无新事件时不发送任何通知。Claude 的已确认重置和额度卡都会推送；whenreset 不提供策略变更事件，因此也不会推送 policy
 - ☁️ **零成本部署** — Cloudflare Workers + KV，免费额度足够
 
 ## 截图
 
 面板包含：
 - 顶部概览：距上次重置、命中率或公开重置次数、Codex 的 24h/48h 概率环
-- 横向时间线：绿色圆点 = 已确认重置，橙色 = 策略变更，空心圆点 = 信号推文
+- 横向时间线：已确认重置、Claude 额度卡，以及 Codex 的信号推文
 - 事件卡片：中文标题、详细描述、范围/来源标签、北京时间、原文链接
 
 ## 两种部署方式
@@ -148,7 +149,37 @@ wrangler deploy
 
 部署后优先等下一次 Cron 自动跑，或审慎地做一次 Claude 首次回填。**不要**在 Claude 第一次回填时随便打 `/api/trigger`，以免把历史确认重置回放到飞书。采集器对 Claude 设了 `notifyOnEmpty=false`，空库首次填充本身不应刷屏。
 
-Claude 的 RSS（`rss/resets.xml`）可能不稳定（曾返回 500），公开 JSON 才是主路径。
+Claude 只读 whenreset 的 [api/resets](https://whenreset.dev/api/resets)。事件 `id` 用落地帖的 `postId`，好和已经存过的同一条推文对齐。切源后的第一次 Cron 可能为新的 postId（例如额度卡）推送一次；空库首次回填仍然不推送。不要为了回填去打 `/api/trigger`。
+
+### 核对 Claude 归一（不部署）
+
+```bash
+npm test
+```
+
+对照线上 JSON（需出网）：
+
+```bash
+curl -fsSL https://whenreset.dev/api/resets -o /tmp/whenreset-resets.json
+node --input-type=module -e '
+import { readFileSync } from "node:fs";
+import { parseClaudeSnapshot } from "./src/lib/providers/claude.js";
+const parsed = parseClaudeSnapshot(JSON.parse(readFileSync("/tmp/whenreset-resets.json", "utf8")));
+const kinds = [...new Set(parsed.events.map((evt) => evt.kind))];
+console.log({
+  events: parsed.events.length,
+  kinds,
+  policy: parsed.events.filter((evt) => evt.kind === "policy").length,
+  lastReset: parsed.lastReset,
+  resetCount: parsed.resetCount,
+  cardCount: parsed.cardCount,
+  medianGapHours: parsed.medianGapHours,
+  medianGapDays: parsed.medianGapDays,
+});
+'
+```
+
+`kinds` 里只应出现 `confirmed` 和 `card`，`policy` 应为 0。
 
 ## 飞书机器人配置
 
@@ -174,7 +205,7 @@ ai-signal-station/
 │       ├── monitor.js           # runProviderMonitor（失败隔离）
 │       └── providers/
 │           ├── codex.js         # codexreset.org HTML
-│           ├── claude.js        # claude-resets.com JSON
+│           ├── claude.js        # whenreset.dev /api/resets
 │           └── index.js
 ├── local/
 │   ├── server.js                # 本地 Node.js 服务器（共享 src/lib）
@@ -190,15 +221,16 @@ ai-signal-station/
 2. **解析**：归一成 `{ product, datetime, kind, title, description, scope, sourceUrl, ... }`
 3. **翻译**：将标题、范围、来源映射为中文
 4. **对比**：与 KV/文件中的上次数据对比，找出新事件
-5. **推送**：只推送 `kind === "confirmed"` 的确认重置到飞书（Claude 源里的 `reset` 映射为 `confirmed`；`policy` 只记录）。Claude 首次回填历史事件不推送，避免刷屏。
+5. **推送**：只推送 `kind === "confirmed"` 的确认重置，以及 Claude 的 `kind === "card"` 额度卡。Claude 的 `reset` 映射为 `confirmed`，`card` 保持为额度卡，**不会**把 card 或任何别的类型记成 `policy`。Claude 首次回填历史事件不推送，避免刷屏。
 6. **存储**：`codex:data` / `claude:data` 以及对应 `*:events`；前端读 `/api/codex`、`/api/claude`
 
 ### 事件类型
 
 | kind | 含义 | 是否推送飞书 |
 |---|---|---|
-| `confirmed` | 已确认的额度重置 | ✅ 推送 |
-| `policy` | 策略变更（未刷新额度计数） | ❌ 仅记录 |
+| `confirmed` | 已确认的额度重置（Claude 源里的 `type: reset`） | ✅ 推送 |
+| `card` | 额度卡 / banked reset（Claude 源里的 `type: card`，可稍后兑换） | ✅ 推送（仅 Claude） |
+| `policy` | 旧采集里的限额策略变更。whenreset 不提供，Claude 轨不再产生 | — |
 | `post` | 相关推文/信号（上行信号等） | ❌ 仅记录 |
 
 ## 技术栈
@@ -210,7 +242,7 @@ ai-signal-station/
 
 ## 数据说明
 
-Codex 数据来自 [codexreset.org](https://codexreset.org/)。Claude 数据来自 [claude-resets.com](https://claude-resets.com/) 的公开 JSON，按该站定义：`reset` 会刷新 5 小时/每周计数，`policy` 只改限额、不刷新计数。
+Codex 数据来自 [codexreset.org](https://codexreset.org/)。Claude 数据来自 [whenreset.dev](https://whenreset.dev/api/resets) 的公开 JSON：`reset` 会刷新 5 小时/每周计数，`card` 是可稍后兑换的额度卡。该接口没有 policy 事件，限额策略变更不会出现在 Claude 时间线上。
 
 中文翻译为程序自动生成，仅供参考。重置信息以官方公告为准。
 

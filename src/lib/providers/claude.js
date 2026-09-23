@@ -1,91 +1,115 @@
 import { normalizeEvent } from '../events.js';
 
-export const CLAUDE_SUMMARY_URL = 'https://claude-resets.com/data/summary.json';
-export const CLAUDE_DATA_RESETS_URL = 'https://claude-resets.com/data/resets.json';
-export const CLAUDE_API_RESETS_URL = 'https://claude-resets.com/api/resets';
-export const CLAUDE_RSS_URL = 'https://claude-resets.com/rss/resets.xml';
+export const CLAUDE_RESETS_URL = 'https://whenreset.dev/api/resets';
+export const CLAUDE_RSS_URL = 'https://whenreset.dev/api/reset-feed?provider=claude';
 
-// Maps taken from live claude-resets.com events only (scope / kind / account).
 const SCOPE_ZH = {
   all: '全体用户',
-  'paid plans': '付费计划用户',
-  'Pro + Max': 'Pro 与 Max 用户',
-  'affected users': '受影响用户',
-  Max: 'Max 用户',
+  paid: '付费用户',
+  max: 'Max 用户',
+  affected: '受影响用户',
 };
 
-const TAG_ZH = {
-  reset: '额度重置',
-  policy: '策略变更',
-};
-
-const TITLE_ZH = {
-  'reset:all': 'Claude 全球额度重置',
-  'reset:Max': 'Claude Max 额度重置',
-  'reset:Pro + Max': 'Claude Pro / Max 额度重置',
-  'reset:affected users': 'Claude 受影响用户额度重置',
-  'policy:paid plans': 'Claude 付费计划策略变更',
+const REASON_ZH = {
+  new_model: '新模型',
+  fix: '故障修复',
+  weekend: '周末',
+  rival: '竞品',
 };
 
 const SOURCE_ZH = {
   ClaudeDevs: 'ClaudeDevs（官方账号）',
+  claudeai: 'claudeai（官方账号）',
   lydiahallie: 'lydiahallie',
 };
 
-function mapKind(sourceKind) {
-  switch (sourceKind) {
+function mapType(sourceType) {
+  switch (sourceType) {
     case 'reset':
       return 'confirmed';
-    case 'policy':
-      return 'policy';
-    default: {
-      const _unknown = sourceKind;
-      return _unknown || 'post';
-    }
-  }
-}
-
-function translateScope(scope) {
-  if (!scope) return null;
-  return SCOPE_ZH[scope] || scope;
-}
-
-function titleFor(sourceKind, scope) {
-  const key = `${sourceKind}:${scope || ''}`;
-  if (TITLE_ZH[key]) return TITLE_ZH[key];
-  switch (sourceKind) {
-    case 'reset':
-      return 'Claude 额度重置';
-    case 'policy':
-      return 'Claude 策略变更';
+    case 'card':
+      return 'card';
     default:
-      return 'Claude 信号';
+      return 'post';
   }
 }
 
-function labelFor(sourceKind) {
-  switch (sourceKind) {
+function localizedText(value) {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  return value['zh-CN'] || value.zh || value.en || null;
+}
+
+function noteFrom(raw) {
+  const localized = localizedText(raw.reasonNote);
+  if (localized) return localized;
+  if (!raw.reason || raw.reason === 'unstated') return null;
+  return REASON_ZH[raw.reason] || raw.reason;
+}
+
+function scopeFields(raw) {
+  const noteZh = raw.scopeNote && localizedText(raw.scopeNote);
+  const noteEn = raw.scopeNote && typeof raw.scopeNote === 'object' ? (raw.scopeNote.en || null) : null;
+  const scopeEn = noteEn || raw.scope || null;
+  const scope = noteZh || (raw.scope ? (SCOPE_ZH[raw.scope] || raw.scope) : null);
+  return { scope, scopeEn };
+}
+
+function primarySource(sources) {
+  const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
+  return list.find((item) => item.role === 'landed' && item.url)
+    || list.find((item) => item.url)
+    || null;
+}
+
+function titleFor(sourceType, scope) {
+  if (sourceType === 'card') return 'Claude 额度卡';
+  if (sourceType !== 'reset') return 'Claude 信号';
+  switch (scope) {
+    case 'all':
+      return 'Claude 全球额度重置';
+    case 'max':
+      return 'Claude Max 额度重置';
+    case 'paid':
+      return 'Claude 付费用户额度重置';
+    case 'affected':
+      return 'Claude 受影响用户额度重置';
+    default:
+      return 'Claude 额度重置';
+  }
+}
+
+function labelFor(sourceType) {
+  switch (sourceType) {
     case 'reset':
       return { en: 'Confirmed reset', zh: '已确认重置' };
-    case 'policy':
-      return { en: 'Policy change', zh: '策略变更' };
+    case 'card':
+      return { en: 'Banked reset card', zh: '额度卡' };
     default:
-      return { en: sourceKind || null, zh: sourceKind || null };
+      return { en: sourceType || null, zh: sourceType || null };
   }
+}
+
+function formatUtcMonthDay(iso) {
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return null;
+  return `${dt.getUTCMonth() + 1}月${dt.getUTCDate()}日`;
 }
 
 function buildDescription(evt) {
   const parts = [];
-  const dt = new Date(evt.datetime);
-  const dateStr = `${dt.getUTCMonth() + 1}月${dt.getUTCDate()}日`;
-  const scope = evt.scope || '受影响用户';
+  const dateStr = formatUtcMonthDay(evt.datetime);
+  let head = '官方';
+  if (dateStr) head += `于 ${dateStr}`;
 
   switch (evt.kind) {
     case 'confirmed':
-      parts.push(`官方于 ${dateStr} 对 ${scope}执行了 Claude Code 额度重置，5 小时及/或每周用量计数已刷新。`);
+      if (evt.scope) head += ` 对 ${evt.scope}`;
+      parts.push(`${head}执行了 Claude 额度重置，5 小时及/或每周用量计数已刷新。`);
       break;
-    case 'policy':
-      parts.push(`官方于 ${dateStr} 公布了面向 ${scope}的用量策略变更；按来源定义，策略公告不刷新额度计数。`);
+    case 'card':
+      if (evt.scope) head += ` 向 ${evt.scope}`;
+      parts.push(`${head}发放了可稍后兑换的额度卡，用量计数不会在公告瞬间刷新。`);
       break;
     default:
       break;
@@ -95,114 +119,202 @@ function buildDescription(evt) {
   return parts.join('');
 }
 
-export function extractClaudeEvents(resetsPayload) {
-  const events = resetsPayload && resetsPayload.providers && resetsPayload.providers.claude
-    ? resetsPayload.providers.claude.events
-    : null;
-  if (Array.isArray(events)) return events;
-  if (resetsPayload && Array.isArray(resetsPayload.events)) return resetsPayload.events;
-  return [];
+export function extractClaudeEvents(payload) {
+  const events = payload && Array.isArray(payload.events) ? payload.events : [];
+  return events.filter((evt) => evt && evt.provider === 'claude');
 }
 
-export function parseClaudeEvent(raw, fallbackAccount) {
-  const sourceKind = raw.kind;
-  const scopeEn = raw.scope || null;
-  const account = raw.account || fallbackAccount || 'ClaudeDevs';
-  const labels = labelFor(sourceKind);
+function statsOf(payload) {
+  return (payload && payload.stats && payload.stats.claude) || {};
+}
+
+function eventSignature(evt) {
+  const note = localizedText(evt && evt.reasonNote) || '';
+  const url = (primarySource(evt && evt.sources) || {}).url || '';
+  return [evt && evt.id, evt && evt.type, evt && evt.landedAt, evt && evt.scope, evt && evt.reason, note, url].join('~');
+}
+
+export function claudeFingerprint(payload) {
+  const stats = statsOf(payload);
+  const signatures = extractClaudeEvents(payload).map(eventSignature).sort().join(',');
+  return [stats.lastResetAt || '', stats.resets ?? '', stats.cards ?? '', signatures].join('|');
+}
+
+export function parseClaudeEvent(raw) {
+  const sourceType = raw && raw.type;
+  const source = primarySource(raw && raw.sources);
+  const account = (source && source.account) || null;
+  const labels = labelFor(sourceType);
+  const scopes = scopeFields(raw || {});
   const evt = {
-    id: raw.id || null,
-    datetime: raw.date,
-    kind: mapKind(sourceKind),
-    sourceKind,
-    sourceUrl: raw.url || null,
-    titleEn: titleFor(sourceKind, scopeEn),
+    id: (source && source.postId) || (raw && raw.id) || null,
+    sourceId: (raw && raw.id) || null,
+    datetime: (raw && raw.landedAt) || null,
+    kind: mapType(sourceType),
+    sourceKind: sourceType || null,
+    sourceUrl: (source && source.url) || null,
+    titleEn: titleFor(sourceType, raw && raw.scope),
     labelEn: labels.en,
-    tagEn: sourceKind,
-    scopeEn,
+    tagEn: raw && raw.reason && raw.reason !== 'unstated' ? raw.reason : null,
+    scopeEn: scopes.scopeEn,
     sourceNameEn: account,
-    title: titleFor(sourceKind, scopeEn),
+    title: titleFor(sourceType, raw && raw.scope),
     label: labels.zh,
-    tag: TAG_ZH[sourceKind] || sourceKind,
-    scope: translateScope(scopeEn),
-    sourceName: SOURCE_ZH[account] || account,
-    note: raw.note || null,
-    verification: raw.verification || null,
+    tag: raw && raw.reason ? (REASON_ZH[raw.reason] || null) : null,
+    scope: scopes.scope,
+    sourceName: account ? (SOURCE_ZH[account] || account) : null,
+    note: noteFrom(raw || {}),
   };
   evt.description = buildDescription(evt);
   return normalizeEvent('claude', evt);
 }
 
-export function summaryFingerprint(summary) {
-  if (!summary) return '';
-  return [summary.lastResetAt || '', summary.resetCount ?? '', summary.policyChangeCount ?? ''].join('|');
-}
-
-export async function fetchClaudeRaw(fetcher, { previous } = {}) {
-  const summary = JSON.parse(await fetcher(CLAUDE_SUMMARY_URL));
-  const unchanged = Boolean(
-    previous
-    && summaryFingerprint(summary) === summaryFingerprint({
-      lastResetAt: previous.lastReset,
-      resetCount: previous.resetCount,
-      policyChangeCount: previous.policyChangeCount,
-    })
-    && Array.isArray(previous.events)
-    && previous.events.length > 0,
-  );
-
-  if (unchanged) {
-    return { summary, resets: null, unchanged: true, previous };
-  }
-
-  let lastError;
-  for (const url of [CLAUDE_API_RESETS_URL, CLAUDE_DATA_RESETS_URL]) {
-    try {
-      const resets = JSON.parse(await fetcher(url));
-      return { summary, resets, unchanged: false, previous: previous || null };
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  throw lastError || new Error('Claude resets JSON unavailable');
-}
-
-export function parseClaudeSnapshot(raw, { now } = {}) {
-  const fetchedAt = now || new Date().toISOString();
-  const summary = raw.summary || {};
-
-  if (raw.unchanged && raw.previous) {
-    return {
-      ...raw.previous,
-      fetchedAt,
-      lastReset: summary.lastResetAt || raw.previous.lastReset,
-      resetCount: summary.resetCount ?? raw.previous.resetCount,
-      policyChangeCount: summary.policyChangeCount ?? raw.previous.policyChangeCount,
-    };
-  }
-
-  const fallbackAccount = summary.account
-    || (raw.resets && raw.resets.providers && raw.resets.providers.claude && raw.resets.providers.claude.account)
-    || 'ClaudeDevs';
-  const events = extractClaudeEvents(raw.resets).map((evt) => parseClaudeEvent(evt, fallbackAccount));
-  const confirmed = events
-    .filter((e) => e.kind === 'confirmed')
+function summaryFields(stats, events) {
+  const ranked = events
+    .filter((evt) => evt.kind === 'confirmed' || evt.kind === 'card')
     .sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+  const latest = ranked[0] || null;
+  const medianGapHours = typeof stats.medianGapHours === 'number' && Number.isFinite(stats.medianGapHours)
+    ? stats.medianGapHours
+    : null;
+  const medianGapDays = medianGapHours == null ? null : Math.round((medianGapHours / 24) * 100) / 100;
+  const confirmedCount = events.filter((evt) => evt.kind === 'confirmed').length;
+  const cardCount = events.filter((evt) => evt.kind === 'card').length;
 
   return {
-    fetchedAt,
-    lastReset: summary.lastResetAt || (confirmed[0] && confirmed[0].datetime) || null,
+    lastReset: stats.lastResetAt || (latest && latest.datetime) || null,
     timeSinceLast: null,
     forecast24h: null,
     forecast48h: null,
     hitRate: null,
-    resetCount: summary.resetCount ?? confirmed.length,
-    policyChangeCount: summary.policyChangeCount ?? events.filter((e) => e.kind === 'policy').length,
-    lastResetScope: summary.lastResetScope || null,
-    lastResetUrl: summary.lastResetUrl || null,
+    resetCount: stats.resets ?? confirmedCount,
+    cardCount: stats.cards ?? cardCount,
+    policyChangeCount: 0,
+    medianGapHours,
+    medianGapDays,
+    lastResetScope: latest ? (latest.scopeEn || null) : null,
+    lastResetUrl: latest ? (latest.sourceUrl || null) : null,
     sourcesResponding: null,
+  };
+}
+
+function unwrapResets(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  if (raw.resets && (Array.isArray(raw.resets.events) || raw.resets.stats)) return raw.resets;
+  return raw;
+}
+
+function decodeXml(text) {
+  return String(text)
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+function rssTag(block, tag) {
+  const match = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i').exec(block);
+  return match ? decodeXml(match[1].trim()) : null;
+}
+
+export function parseClaudeRss(xml) {
+  const items = [];
+  const re = /<item>([\s\S]*?)<\/item>/gi;
+  let match = re.exec(xml || '');
+  while (match) {
+    const block = match[1];
+    const title = rssTag(block, 'title');
+    const link = rssTag(block, 'link');
+    const pubDate = rssTag(block, 'pubDate');
+    const description = rssTag(block, 'description');
+    const label = (title || '').split('·').slice(1).join('·').trim();
+    let sourceType = null;
+    if (/bonus reset/i.test(label)) sourceType = 'card';
+    else if (/usage reset/i.test(label)) sourceType = 'reset';
+    const statusMatch = link ? /status\/(\d+)/.exec(link) : null;
+    const postId = statusMatch ? statusMatch[1] : null;
+    const account = (title || '').split('·')[0].trim() || null;
+    const landedAt = pubDate ? new Date(pubDate) : null;
+    items.push(parseClaudeEvent({
+      id: postId || link || title,
+      type: sourceType,
+      landedAt: landedAt && !Number.isNaN(landedAt.getTime()) ? landedAt.toISOString() : null,
+      reasonNote: description ? { en: description } : null,
+      sources: [{
+        role: 'landed',
+        postId,
+        account,
+        url: link,
+      }],
+    }));
+    match = re.exec(xml || '');
+  }
+  return items;
+}
+
+export function parseClaudeSnapshot(raw, { now } = {}) {
+  const fetchedAt = now || new Date().toISOString();
+
+  if (raw && raw.feed === 'rss') {
+    const events = parseClaudeRss(raw.rss);
+    return {
+      fetchedAt,
+      sourceFingerprint: null,
+      feed: 'rss',
+      ...summaryFields({}, events),
+      events,
+    };
+  }
+
+  const payload = unwrapResets(raw);
+  const fingerprint = claudeFingerprint(payload);
+  if (raw && raw.unchanged && raw.previous && Array.isArray(raw.previous.events)) {
+    return {
+      ...raw.previous,
+      fetchedAt,
+      sourceFingerprint: fingerprint,
+      ...summaryFields(statsOf(payload), raw.previous.events),
+      events: raw.previous.events,
+    };
+  }
+
+  const events = extractClaudeEvents(payload).map((evt) => parseClaudeEvent(evt));
+  return {
+    fetchedAt,
+    sourceFingerprint: fingerprint,
+    feed: 'json',
+    ...summaryFields(statsOf(payload), events),
     events,
   };
+}
+
+export async function fetchClaudeRaw(fetcher, { previous } = {}) {
+  try {
+    const text = await fetcher(CLAUDE_RESETS_URL);
+    const resets = JSON.parse(text);
+    if (!resets || !Array.isArray(resets.events)) {
+      throw new Error('whenreset JSON missing events[]');
+    }
+    const fingerprint = claudeFingerprint(resets);
+    const unchanged = Boolean(
+      previous
+      && previous.sourceFingerprint
+      && previous.sourceFingerprint === fingerprint
+      && Array.isArray(previous.events)
+      && previous.events.length > 0,
+    );
+    return { feed: 'json', resets, unchanged, previous: previous || null };
+  } catch (jsonError) {
+    try {
+      const rss = await fetcher(CLAUDE_RSS_URL);
+      return { feed: 'rss', rss, unchanged: false, previous: previous || null };
+    } catch {
+      const message = jsonError && jsonError.message ? jsonError.message : String(jsonError);
+      throw new Error(`Claude whenreset JSON unavailable (${message})`);
+    }
+  }
 }
 
 export const claudeProvider = {
@@ -211,7 +323,7 @@ export const claudeProvider = {
   kvKey: 'claude:data',
   eventsKey: 'claude:events',
   apiPath: '/api/claude',
-  notifyKinds: ['confirmed'],
+  notifyKinds: ['confirmed', 'card'],
   notifyOnEmpty: false,
   async fetchRaw(fetcher, { store } = {}) {
     let previous = null;

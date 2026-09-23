@@ -120,15 +120,19 @@
       <div class="hero">
         <div class="hero-left">
           <h1 class="hero-title">Claude Code 额度重置监控</h1>
-          <p class="hero-desc">追踪公开的全球 Claude Code 重置与策略公告，检测到新的确认重置立即推送飞书。</p>
+          <p class="hero-desc">追踪 whenreset.dev 记录的公开 Claude 额度重置与额度卡。该源不收录策略变更（policy）。</p>
           <div class="hero-meta">
             <span class="meta-item">
               <span class="meta-label">距上次重置</span>
               <span class="meta-value" data-role="time-since">—</span>
             </span>
             <span class="meta-item">
-              <span class="meta-label" data-role="secondary-label">公开重置次数</span>
+              <span class="meta-label" data-role="secondary-label">额度重置次数</span>
               <span class="meta-value" data-role="secondary-value">—</span>
+            </span>
+            <span class="meta-item">
+              <span class="meta-label" data-role="gap-label" title="whenreset stats.claude.medianGapHours ÷ 24，不是平均间隔">间隔中位数</span>
+              <span class="meta-value" data-role="gap-value">—</span>
             </span>
           </div>
         </div>
@@ -138,7 +142,7 @@
         <h2>重置时间线</h2>
         <div class="legend">
           <span class="legend-item"><span class="legend-dot dot-confirmed"></span>已确认重置</span>
-          <span class="legend-item"><span class="legend-dot dot-policy"></span>策略变更</span>
+          <span class="legend-item"><span class="legend-dot dot-card"></span>额度卡</span>
         </div>
       </div>
 

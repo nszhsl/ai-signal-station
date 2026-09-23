@@ -1,19 +1,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { runEnabledProviders, runProviderMonitor } from '../src/lib/monitor.js';
-import { claudeProvider, parseClaudeSnapshot } from '../src/lib/providers/claude.js';
+import { CLAUDE_RESETS_URL, claudeProvider, parseClaudeSnapshot } from '../src/lib/providers/claude.js';
 import { codexProvider, parseCodexReset } from '../src/lib/providers/codex.js';
 import { loadFixture, loadJsonFixture, memoryStore, recordedSend } from './helpers.js';
 
 const NOW = '2026-09-08T00:00:00.000Z';
-const summary = loadJsonFixture('claude-summary.json');
-const resets = loadJsonFixture('claude-resets.json');
+const resets = loadJsonFixture('whenreset-resets.json');
 const html = loadFixture('codex-sample.html');
 
 function claudeFetcher() {
   return async (url) => {
-    if (url.includes('summary.json')) return JSON.stringify(summary);
-    if (url.includes('resets')) return JSON.stringify(resets);
+    if (url === CLAUDE_RESETS_URL) return JSON.stringify(resets);
     throw new Error('unexpected ' + url);
   };
 }
@@ -38,7 +36,7 @@ describe('runProviderMonitor', () => {
   });
 
   it('does not push Feishu when Claude events are unchanged', async () => {
-    const parsed = parseClaudeSnapshot({ summary, resets }, { now: NOW });
+    const parsed = parseClaudeSnapshot(resets, { now: NOW });
     const store = memoryStore({
       'claude:data': JSON.stringify(parsed),
     });
@@ -79,12 +77,13 @@ describe('runProviderMonitor', () => {
   });
 
   it('pushes one Claude card for a new confirmed reset', async () => {
-    const parsed = parseClaudeSnapshot({ summary, resets }, { now: NOW });
+    const parsed = parseClaudeSnapshot(resets, { now: NOW });
     const prior = {
       ...parsed,
       events: parsed.events.filter((e) => e.id !== '2095967323412930677'),
       lastReset: '2026-06-01T17:35:01Z',
       resetCount: 2,
+      sourceFingerprint: 'stale',
     };
     const store = memoryStore({
       'claude:data': JSON.stringify(prior),
@@ -122,12 +121,14 @@ describe('runProviderMonitor', () => {
     assert.equal(saved.events.length, 4);
   });
 
-  it('records a new Claude policy event but does not notify', async () => {
-    const parsed = parseClaudeSnapshot({ summary, resets }, { now: NOW });
+  it('pushes a new Claude banked card and does not treat it as policy', async () => {
+    const parsed = parseClaudeSnapshot(resets, { now: NOW });
     const prior = {
       ...parsed,
-      events: parsed.events.filter((e) => e.kind !== 'policy'),
+      events: parsed.events.filter((e) => e.kind !== 'card'),
+      cardCount: 0,
       policyChangeCount: 0,
+      sourceFingerprint: 'stale',
     };
     const store = memoryStore({
       'claude:data': JSON.stringify(prior),
@@ -141,8 +142,11 @@ describe('runProviderMonitor', () => {
       now: NOW,
     });
     assert.equal(result.newEvents, 1);
-    assert.equal(result.notified, 0);
-    assert.equal(cards.length, 0);
+    assert.equal(result.notified, 1);
+    assert.equal(cards.length, 1);
+    assert.equal(cards[0].header.title.content, '[Claude] 🟢 额度卡发放');
+    assert.equal(parsed.events.some((evt) => evt.kind === 'policy'), false);
+    assert.equal(JSON.parse(store.raw['claude:data']).policyChangeCount, 0);
   });
 });
 

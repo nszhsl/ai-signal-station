@@ -1,0 +1,145 @@
+{
+  "generatedAt": "2026-09-23T00:06:23.989Z",
+  "checkedAt": "2026-09-23T00:05:29.600Z",
+  "source": "live",
+  "stats": {
+    "claude": {
+      "total": 14,
+      "resets": 13,
+      "cards": 1,
+      "lastResetAt": "2026-09-22T16:31:08.000Z",
+      "resetsLast30Days": 2,
+      "cardsLast30Days": 1,
+      "gapSamples": 10,
+      "medianGapHours": 192.48097222222222,
+      "estimatedNextAt": "2026-09-30T17:17:55.485Z"
+    },
+    "codex": { "total": 1 },
+    "grok": { "total": 1 }
+  },
+  "events": [
+    {
+      "id": "claude-2102438800836489554",
+      "provider": "claude",
+      "type": "card",
+      "scope": "paid",
+      "reason": "new_model",
+      "reasonNote": {
+        "zh-CN": "Opus 5.5 发布",
+        "en": "Opus 5.5 launch"
+      },
+      "landedAt": "2026-09-22T16:31:08.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2102435538120691886",
+          "account": "claudeai",
+          "at": "2026-09-22T16:31:08.000Z",
+          "url": "https://x.com/claudeai/status/2102435538120691886"
+        },
+        {
+          "role": "followup",
+          "postId": "2102438800836489554",
+          "account": "ClaudeDevs",
+          "at": "2026-09-22T16:44:06.000Z",
+          "url": "https://x.com/ClaudeDevs/status/2102438800836489554"
+        }
+      ]
+    },
+    {
+      "id": "claude-2095967323412930677",
+      "provider": "claude",
+      "type": "reset",
+      "scope": "max",
+      "reason": "rival",
+      "reasonNote": {
+        "zh-CN": "应对 Astra 发布，官方说法是长周末",
+        "en": "Response to Astra launch; official wording is the long weekend"
+      },
+      "landedAt": "2026-09-04T20:08:45.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2095967323412930677",
+          "account": "lydiahallie",
+          "at": "2026-09-04T20:08:45.000Z",
+          "url": "https://x.com/lydiahallie/status/2095967323412930677"
+        }
+      ]
+    },
+    {
+      "id": "claude-2077603834453770467",
+      "provider": "claude",
+      "type": "reset",
+      "scope": "all",
+      "reason": "unstated",
+      "landedAt": "2026-07-16T03:58:48.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2077603834453770467",
+          "account": "ClaudeDevs",
+          "at": "2026-07-16T03:58:48.000Z",
+          "url": "https://x.com/ClaudeDevs/status/2077603834453770467"
+        }
+      ]
+    },
+    {
+      "id": "claude-2067802163498352929",
+      "provider": "claude",
+      "type": "reset",
+      "scope": "affected",
+      "scopeNote": {
+        "zh-CN": "额度显示异常的 Pro、Max 用户",
+        "en": "Pro and Max users with incorrect limits"
+      },
+      "reason": "fix",
+      "reasonNote": {
+        "zh-CN": "周额度显示错误",
+        "en": "Wrong weekly limit shown"
+      },
+      "landedAt": "2026-06-19T02:50:28.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2067802163498352929",
+          "account": "ClaudeDevs",
+          "at": "2026-06-19T02:50:28.000Z",
+          "url": "https://x.com/ClaudeDevs/status/2067802163498352929"
+        }
+      ]
+    },
+    {
+      "id": "codex-2102463847714247142",
+      "provider": "codex",
+      "type": "card",
+      "scope": "unknown",
+      "reason": "unstated",
+      "landedAt": "2026-09-22T18:23:37.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2102463847714247142",
+          "account": "thsottiaux",
+          "url": "https://x.com/thsottiaux/status/2102463847714247142"
+        }
+      ]
+    },
+    {
+      "id": "grok-2096303514230423629",
+      "provider": "grok",
+      "type": "reset",
+      "scope": "all",
+      "reason": "unstated",
+      "landedAt": "2026-09-05T18:24:39.000Z",
+      "sources": [
+        {
+          "role": "landed",
+          "postId": "2096303514230423629",
+          "account": "bot",
+          "url": "https://x.com/bot/status/2096303514230423629"
+        }
+      ]
+    }
+  ]
+}

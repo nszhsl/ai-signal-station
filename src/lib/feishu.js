@@ -15,6 +15,8 @@ function kindPresentation(kind) {
   switch (kind) {
     case 'confirmed':
       return { label: '🟢 额度重置确认', color: 'green' };
+    case 'card':
+      return { label: '🟢 额度卡发放', color: 'green' };
     case 'policy':
       return { label: '🟡 策略变更', color: 'yellow' };
     case 'post':
